@@ -42,8 +42,23 @@ const { push } = useRouter();
 
 
 ## 과제 구현
+### RouterContext (src/router/RouterContext.tsx)
+```tsx
+import { createContext } from "react";
 
-### Router
+interface RouterContext {
+  currentPath: string;
+}
+
+const RouterContext = createContext<RouterContext>({ currentPath: "" });
+
+export default RouterContext;
+```
+
+Router에서 관리중인 `currentPath`의 정보를 전역적으로 관리하기 위해 React의 `createContext`를 사용하여 `RouterContext`를 생성했습니다.
+
+
+### Router (src/router/Router.tsx)
 ```tsx
 import { useEffect, useState } from "react";
 import RouterContext from "./RouterContext";
@@ -75,19 +90,8 @@ const Router = ({ children }: RouterProps) => {
 export default Router;
 ```
 
-
-### RouterContext
-```tsx
-import { createContext } from "react";
-
-interface RouterContext {
-  currentPath: string;
-}
-
-const RouterContext = createContext<RouterContext>({ currentPath: "" });
-
-export default RouterContext;
-```
+현재 페이지 경로 (`currentPath`)를 관리하며 Context API의 `Provider`를 사용해 하위 컴포넌트에서 경로 정보에 접근할 수 있도록 합니다.
+window `popstate` 이벤트를 이용해 뒤로가기 버튼을 통한 경로의 변경을 감지하고 다시 반영합니다.
 
 
 ### Route
@@ -109,6 +113,9 @@ const Route = ({ path, component }: RouteProps) => {
 export default Route;
 ```
 
+component와 해당 컴포넌트를 표시할 path를 props로 받습니다.
+props로 전해받은 `path`와 RouterContext에서 관리중인 currentPath(현재 경로)의 값이 일치할 때 component를 화면에 표시합니다.
+
 
 ### useRouter
 ```tsx
@@ -125,6 +132,10 @@ const useRouter = () => {
 
 export default useRouter;
 ```
+
+useRouter의 `push` 함수는 이동할 경로 `path`를 인자로 전달받고, History API의 pushState 메서드를 사용해 페이지를 갱신하거나 새로고침하지 않고 해당 `path`로 페이지를 전환합니다.
+이 때, RouterContext에서 관리중인 `currentPath`값이 함께 변경되어 화면이 새로 렌더링될 수 있도록 Router가 구독중인 `popstate`이벤트를 생성하고 실행시켜,
+`currentPath`에 변경된 경로가 제대로 저장될 수 있도록 합니다.
 
 
 ### About, Root page
